@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AISS — Automated Interview Slot Scheduler</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #111827;
+      --card:      #1a2235;
+      --border:    #1e2d45;
+      --accent:    #3b82f6;
+      --accent2:   #06b6d4;
+      --green:     #10b981;
+      --yellow:    #f59e0b;
+      --red:       #ef4444;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --mono:      'DM Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BACKGROUND ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11,15,26,0.85);
+      backdrop-filter: blur(12px);
+      padding: 0 2rem;
+    }
+    .header-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 18px;
+    }
+    .logo-text { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .logo-sub  { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); letter-spacing: 0.1em; }
+    .badge {
+      font-family: var(--mono); font-size: 0.7rem;
+      background: rgba(59,130,246,0.15); color: var(--accent);
+      border: 1px solid rgba(59,130,246,0.3);
+      padding: 4px 10px; border-radius: 20px;
+    }
+
+    /* ── MAIN ── */
+    main {
+      position: relative; z-index: 5;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+    }
+    .hero p {
+      color: var(--muted); font-size: 0.95rem; font-family: var(--mono);
+      margin-bottom: 2rem;
+    }
+    .co-tags {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
+      margin-bottom: 2rem;
+    }
+    .co-tag {
+      font-family: var(--mono); font-size: 0.7rem;
+      border-radius: 6px; padding: 4px 12px;
+      border: 1px solid;
+    }
+    .co-tag.co1 { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.3); }
+    .co-tag.co2 { background: rgba(59,130,246,0.1); color: #3b82f6; border-color: rgba(59,130,246,0.3); }
+    .co-tag.co3 { background: rgba(245,158,11,0.1); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+    .co-tag.co4 { background: rgba(168,85,247,0.1); color: #a855f7; border-color: rgba(168,85,247,0.3); }
+
+    /* ── STAT CARDS ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--accent); }
+    .stat-num {
+      font-size: 2rem; font-weight: 800; letter-spacing: -0.04em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat-label { font-size: 0.72rem; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+
+    /* ── GRID LAYOUT ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── SECTION CARDS ── */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .section-icon { font-size: 1rem; }
+    .section-title { font-weight: 700; font-size: 0.9rem; }
+    .section-sub { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); margin-left: auto; }
+    .section-body { padding: 1.25rem; }
+
+    /* ── PERSON CARDS ── */
+    .person-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .person-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .person-card:hover { border-color: var(--accent); transform: translateX(2px); }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .avatar.iv { background: linear-gradient(135deg,#1d4ed8,#3b82f6); }
+    .avatar.cd { background: linear-gradient(135deg,#065f46,#10b981); }
+    .person-info { flex: 1; min-width: 0; }
+    .person-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
+    .person-meta { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); }
+    .slots-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .slot-chip {
+      font-family: var(--mono); font-size: 0.6rem;
+      background: rgba(59,130,246,0.1); color: var(--accent2);
+      border: 1px solid rgba(6,182,212,0.2);
+      padding: 2px 7px; border-radius: 4px;
+    }
+    .round-chip {
+      font-family: var(--mono); font-size: 0.6rem;
+      padding: 2px 7px; border-radius: 4px; border: 1px solid;
+    }
+    .round-chip.hr   { background: rgba(245,158,11,0.1); color:#f59e0b; border-color:rgba(245,158,11,0.3); }
+    .round-chip.tech { background: rgba(59,130,246,0.1); color:#3b82f6; border-color:rgba(59,130,246,0.3); }
+    .round-chip.mgmt { background: rgba(168,85,247,0.1); color:#a855f7; border-color:rgba(168,85,247,0.3); }
+
+    /* ── SCHEDULE TABLE ── */
+    .schedule-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.6rem 0.75rem; text-align: left; font-weight: 500;
+    }
+    td { padding: 0.75rem; border-bottom: 1px solid rgba(30,45,69,0.5); vertical-align: middle; }
+    tbody tr:hover { background: rgba(59,130,246,0.04); }
+    tbody tr:last-child td { border-bottom: none; }
+    .cand-name { font-weight: 600; }
+    .score-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .bar-track {
+      flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.8s ease;
+    }
+    .score-num { font-family: var(--mono); font-size: 0.7rem; color: var(--accent2); width: 28px; }
+    .pref-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      display: inline-block; margin-right: 4px;
+    }
+    .pref-dot.yes { background: var(--green); }
+    .pref-dot.no  { background: var(--muted); }
+
+    /* ── TRACE BOX ── */
+    .trace-box {
+      background: #080d16;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      line-height: 1.8;
+      max-height: 320px;
+      overflow-y: auto;
+      color: #94a3b8;
+    }
+    .trace-box .ok   { color: var(--green); }
+    .trace-box .back { color: var(--red); }
+    .trace-box .try  { color: var(--accent); }
+    .trace-box .head { color: var(--yellow); font-weight: 600; }
+
+    /* ── BFS SECTION ── */
+    .bfs-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bfs-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+    }
+    .bfs-label { font-family: var(--mono); font-size: 0.72rem; flex: 0 0 120px; }
+    .bfs-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .bfs-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+    .bfs-fill.hr   { background: linear-gradient(90deg,#d97706,#f59e0b); }
+    .bfs-fill.tech { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
+    .bfs-fill.mgmt { background: linear-gradient(90deg,#7c3aed,#a855f7); }
+    .bfs-val { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); flex: 0 0 60px; text-align: right; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 5;
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim { animation: fadeUp 0.5s ease both; }
+    .anim-1 { animation-delay: 0.05s; }
+    .anim-2 { animation-delay: 0.12s; }
+    .anim-3 { animation-delay: 0.18s; }
+    .anim-4 { animation-delay: 0.24s; }
+    .anim-5 { animation-delay: 0.30s; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">📅</div>
+      <div>
+        <div class="logo-text">AISS</div>
+        <div class="logo-sub">AUTOMATED INTERVIEW SLOT SCHEDULER</div>
+      </div>
+    </div>
+    <div class="badge">CFAI · 25SC1306E · KL University</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero anim anim-1">
+    <h1>Interview Slot Scheduler</h1>
+    <p>CSP + Backtracking · BFS Search · Utility Scoring · Agent Model</p>
+    <div class="co-tags">
+      <span class="co-tag co1">CO1 · Agent Model (PEAS)</span>
+      <span class="co-tag co2">CO2 · BFS Search</span>
+      <span class="co-tag co3">CO3 · CSP + Backtracking</span>
+      <span class="co-tag co4">CO4 · Utility Scoring</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats anim anim-2">
+    <div class="stat-card">
+      <div class="stat-num">5</div>
+      <div class="stat-label">CANDIDATES</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">4</div>
+      <div class="stat-label">INTERVIEWERS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">3</div>
+      <div class="stat-label">ROUND TYPES</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">10</div>
+      <div class="stat-label">ASSIGNMENTS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">0</div>
+      <div class="stat-label">BACKTRACKS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">16</div>
+      <div class="stat-label">BFS NODES</div>
+    </div>
+  </div>
+
+  <!-- INTERVIEWERS + CANDIDATES -->
+  <div class="grid-2 anim anim-3">
+
+    <!-- INTERVIEWERS -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">👤</span>
+        <span class="section-title">Interviewers</span>
+        <span class="section-sub">CO1 · Environment Sensors</span>
+      </div>
+      <div class="section-body">
+        <div class="person-list">
+
+          <div class="person-card">
+            <div class="avatar iv">DR</div>
+            <div class="person-info">
+              <div class="person-name">Dr. Rao</div>
+              <div class="person-meta">I001 · Technical Expert</div>
+              <div class="slots-row">
+                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Mon-11AM</span>
+                <span class="slot-chip">Tue-10AM</span><span class="slot-chip">Wed-9AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar iv">MP</div>
+            <div class="person-info">
+              <div class="person-name">Ms. Priya</div>
+              <div class="person-meta">I002 · HR Specialist</div>
+              <div class="slots-row">
+                <span class="slot-chip">Mon-10AM</span><span class="slot-chip">Tue-9AM</span>
+                <span class="slot-chip">Tue-11AM</span><span class="slot-chip">Thu-10AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar iv">MA</div>
+            <div class="person-info">
+              <div class="person-name">Mr. Arjun</div>
+              <div class="person-meta">I003 · Technical Expert</div>
+              <div class="slots-row">
+                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Wed-10AM</span>
+                <span class="slot-chip">Thu-9AM</span><span class="slot-chip">Fri-11AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar iv">MK</div>
+            <div class="person-info">
+              <div class="person-name">Ms. Kavya</div>
+              <div class="person-meta">I004 · Managerial Lead</div>
+              <div class="slots-row">
+                <span class="slot-chip">Tue-10AM</span><span class="slot-chip">Wed-11AM</span>
+                <span class="slot-chip">Thu-10AM</span><span class="slot-chip">Fri-9AM</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- CANDIDATES -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">🎓</span>
+        <span class="section-title">Candidates</span>
+        <span class="section-sub">CO1 · State Variables</span>
+      </div>
+      <div class="section-body">
+        <div class="person-list">
+
+          <div class="person-card">
+            <div class="avatar cd">CH</div>
+            <div class="person-info">
+              <div class="person-name">Charvik</div>
+              <div class="person-meta">C001</div>
+              <div class="slots-row">
+                <span class="round-chip hr">HR</span><span class="round-chip tech">Technical</span>
+                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Mon-10AM</span><span class="slot-chip">Tue-10AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar cd">AD</div>
+            <div class="person-info">
+              <div class="person-name">Aditya</div>
+              <div class="person-meta">C002</div>
+              <div class="slots-row">
+                <span class="round-chip hr">HR</span><span class="round-chip tech">Technical</span>
+                <span class="slot-chip">Mon-11AM</span><span class="slot-chip">Tue-9AM</span><span class="slot-chip">Wed-9AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar cd">RI</div>
+            <div class="person-info">
+              <div class="person-name">Riya</div>
+              <div class="person-meta">C003</div>
+              <div class="slots-row">
+                <span class="round-chip hr">HR</span><span class="round-chip mgmt">Managerial</span>
+                <span class="slot-chip">Tue-10AM</span><span class="slot-chip">Wed-10AM</span><span class="slot-chip">Thu-10AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar cd">SA</div>
+            <div class="person-info">
+              <div class="person-name">Sai</div>
+              <div class="person-meta">C004</div>
+              <div class="slots-row">
+                <span class="round-chip tech">Technical</span><span class="round-chip mgmt">Managerial</span>
+                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Wed-11AM</span><span class="slot-chip">Fri-9AM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="person-card">
+            <div class="avatar cd">ME</div>
+            <div class="person-info">
+              <div class="person-name">Meena</div>
+              <div class="person-meta">C005</div>
+              <div class="slots-row">
+                <span class="round-chip hr">HR</span><span class="round-chip tech">Technical</span>
+                <span class="slot-chip">Tue-11AM</span><span class="slot-chip">Thu-9AM</span><span class="slot-chip">Fri-11AM</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BFS + CSP TRACE -->
+  <div class="grid-2 anim anim-4">
+
+    <!-- BFS -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">🔍</span>
+        <span class="section-title">BFS — Reachable Slot Exploration</span>
+        <span class="section-sub">CO2 · Search</span>
+      </div>
+      <div class="section-body">
+        <div class="bfs-grid">
+          <div class="bfs-row">
+            <span class="bfs-label">HR Round</span>
+            <div class="bfs-track"><div class="bfs-fill hr" style="width:50%"></div></div>
+            <span class="bfs-val">4 pairs · 4 nodes</span>
+          </div>
+          <div class="bfs-row">
+            <span class="bfs-label">Technical Round</span>
+            <div class="bfs-track"><div class="bfs-fill tech" style="width:100%"></div></div>
+            <span class="bfs-val">8 pairs · 16 nodes</span>
+          </div>
+          <div class="bfs-row">
+            <span class="bfs-label">Managerial Round</span>
+            <div class="bfs-track"><div class="bfs-fill mgmt" style="width:50%"></div></div>
+            <span class="bfs-val">4 pairs · 8 nodes</span>
+          </div>
+        </div>
+        <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:1rem;">
+          Total nodes explored: <strong style="color:var(--accent2)">16</strong> &nbsp;|&nbsp;
+          Algorithm: Breadth-First Search (FIFO queue) &nbsp;|&nbsp;
+          Purpose: Verify reachability before CSP
+        </p>
+      </div>
+    </div>
+
+    <!-- CSP TRACE -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">🧩</span>
+        <span class="section-title">CSP Backtracking Trace</span>
+        <span class="section-sub">CO3 · MRV Heuristic</span>
+      </div>
+      <div class="section-body">
+        <div class="trace-box">
+          <div class="head">Constraints: expertise match · no double-booking · no same-slot conflict</div>
+          <div class="head">Heuristic: MRV (Minimum Remaining Values) + preference-first domain ordering</div>
+          <br>
+          <div class="try">  Try (C001, HR) — domain size: 4</div>
+          <div class="ok">    ✓ Assigned (C001, HR) → (I002, Mon-10AM) [preferred ✓]</div>
+          <div class="try">  Try (C002, HR) — domain size: 4</div>
+          <div class="ok">    ✓ Assigned (C002, HR) → (I002, Tue-9AM) [preferred ✓]</div>
+          <div class="try">  Try (C003, HR) — domain size: 4</div>
+          <div class="ok">    ✓ Assigned (C003, HR) → (I002, Thu-10AM) [preferred ✓]</div>
+          <div class="try">  Try (C003, Managerial) — domain size: 4</div>
+          <div class="ok">    ✓ Assigned (C003, Managerial) → (I004, Tue-10AM) [preferred ✓]</div>
+          <div class="try">  Try (C004, Managerial) — domain size: 4</div>
+          <div class="ok">    ✓ Assigned (C004, Managerial) → (I004, Wed-11AM) [preferred ✓]</div>
+          <div class="try">  Try (C005, HR) — domain size: 4</div>
+          <div class="ok">    ✓ Assigned (C005, HR) → (I002, Tue-11AM) [preferred ✓]</div>
+          <div class="try">  Try (C001, Technical) — domain size: 8</div>
+          <div class="ok">    ✓ Assigned (C001, Technical) → (I001, Mon-9AM) [preferred ✓]</div>
+          <div class="try">  Try (C002, Technical) — domain size: 8</div>
+          <div class="ok">    ✓ Assigned (C002, Technical) → (I001, Mon-11AM) [preferred ✓]</div>
+          <div class="try">  Try (C004, Technical) — domain size: 8</div>
+          <div class="ok">    ✓ Assigned (C004, Technical) → (I003, Mon-9AM) [preferred ✓]</div>
+          <div class="try">  Try (C005, Technical) — domain size: 8</div>
+          <div class="ok">    ✓ Assigned (C005, Technical) → (I003, Thu-9AM) [preferred ✓]</div>
+          <br>
+          <div class="head">✅ Solution found · Backtracks: 0</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FINAL SCHEDULE TABLE -->
+  <div class="section-card anim anim-5" style="margin-bottom:1.5rem;">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <span class="section-title">Final Interview Schedule</span>
+      <span class="section-sub">CO4 · Utility-Scored Output</span>
+    </div>
+    <div class="section-body" style="padding:0;">
+      <div class="schedule-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Round</th>
+              <th>Interviewer</th>
+              <th>Slot</th>
+              <th>Preferred</th>
+              <th>Utility Score</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  AISS · Automated Interview Slot Scheduler &nbsp;|&nbsp;
+  CFAI 25SC1306E · KL University, Bachupally &nbsp;|&nbsp;
+  Python · CSP · BFS · Utility Functions
+</footer>
+
+<script>
+  const schedule = [
+    { candidate:"Charvik",  round:"HR",          interviewer:"Ms. Priya",  slot:"Mon-10AM", preferred:true,  score:8.9 },
+    { candidate:"Charvik",  round:"Technical",   interviewer:"Dr. Rao",    slot:"Mon-9AM",  preferred:true,  score:10.0 },
+    { candidate:"Aditya",   round:"HR",          interviewer:"Ms. Priya",  slot:"Tue-9AM",  preferred:true,  score:8.0 },
+    { candidate:"Aditya",   round:"Technical",   interviewer:"Dr. Rao",    slot:"Mon-11AM", preferred:true,  score:9.8 },
+    { candidate:"Riya",     round:"HR",          interviewer:"Ms. Priya",  slot:"Thu-10AM", preferred:true,  score:7.0 },
+    { candidate:"Riya",     round:"Managerial",  interviewer:"Ms. Kavya",  slot:"Tue-10AM", preferred:true,  score:8.9 },
+    { candidate:"Sai",      round:"Technical",   interviewer:"Mr. Arjun",  slot:"Mon-9AM",  preferred:true,  score:10.0 },
+    { candidate:"Sai",      round:"Managerial",  interviewer:"Ms. Kavya",  slot:"Wed-11AM", preferred:true,  score:8.0 },
+    { candidate:"Meena",    round:"HR",          interviewer:"Ms. Priya",  slot:"Tue-11AM", preferred:true,  score:7.8 },
+    { candidate:"Meena",    round:"Technical",   interviewer:"Mr. Arjun",  slot:"Thu-9AM",  preferred:true,  score:8.0 },
+  ];
+
+  const roundClass = { HR:"hr", Technical:"tech", Managerial:"mgmt" };
+
+  const tbody = document.getElementById("schedule-body");
+  schedule.forEach(entry => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="cand-name">${entry.candidate}</span></td>
+      <td><span class="round-chip ${roundClass[entry.round]}">${entry.round}</span></td>
+      <td>${entry.interviewer}</td>
+      <td><span class="slot-chip">${entry.slot}</span></td>
+      <td><span class="pref-dot ${entry.preferred?'yes':'no'}"></span>${entry.preferred ? 'Yes' : 'No'}</td>
+      <td>
+        <div class="score-bar">
+          <div class="bar-track"><div class="bar-fill" style="width:${entry.score*10}%"></div></div>
+          <span class="score-num">${entry.score}</span>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+</script>
+</body>
+</html>
