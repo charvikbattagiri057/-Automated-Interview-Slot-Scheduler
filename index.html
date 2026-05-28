@@ -3,642 +3,734 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AISS — Automated Interview Slot Scheduler</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <meta name="description" content="Academic project showcase for Automated Interview Slot Scheduler (AISS) — CFAI Course, KL University." />
+  <title>Automated Interview Slot Scheduler | AISS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0b0f1a;
-      --surface:   #111827;
-      --card:      #1a2235;
-      --border:    #1e2d45;
-      --accent:    #3b82f6;
-      --accent2:   #06b6d4;
-      --green:     #10b981;
-      --yellow:    #f59e0b;
-      --red:       #ef4444;
-      --text:      #e2e8f0;
-      --muted:     #64748b;
-      --mono:      'DM Mono', monospace;
-      --sans:      'Syne', sans-serif;
+      --bg:         #f5f3ee;
+      --bg2:        #ede9e0;
+      --surface:    #ffffff;
+      --border:     #d6d0c4;
+      --ink:        #1a1714;
+      --ink2:       #3d3830;
+      --muted:      #8c8072;
+      --accent:     #1a3a5c;
+      --accent2:    #c9540a;
+      --accent3:    #1a7a4a;
+      --tag-bg:     #1a3a5c14;
+      --mono:       'JetBrains Mono', monospace;
+      --sans:       'Outfit', sans-serif;
+      --radius:     12px;
     }
+
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
-      color: var(--text);
+      color: var(--ink);
       font-family: var(--sans);
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-size: 16px;
+      line-height: 1.6;
     }
 
-    /* ── GRID BACKGROUND ── */
-    body::before {
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::after {
       content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.4;
     }
 
-    /* ── HEADER ── */
-    header {
-      position: relative;
-      z-index: 10;
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245,243,238,0.9);
+      backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
-      background: rgba(11,15,26,0.85);
-      backdrop-filter: blur(12px);
       padding: 0 2rem;
     }
-    .header-inner {
-      max-width: 1300px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 58px;
     }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
+    .nav-brand {
+      font-weight: 800; font-size: 1rem; letter-spacing: -0.03em;
+      color: var(--accent);
+      display: flex; align-items: center; gap: 0.5rem;
     }
-    .logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 8px;
-      display: grid; place-items: center;
-      font-size: 18px;
+    .nav-pill {
+      font-family: var(--mono); font-size: 0.6rem;
+      background: var(--accent); color: #fff;
+      padding: 2px 8px; border-radius: 20px; letter-spacing: 0.05em;
     }
-    .logo-text { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
-    .logo-sub  { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); letter-spacing: 0.1em; }
-    .badge {
-      font-family: var(--mono); font-size: 0.7rem;
-      background: rgba(59,130,246,0.15); color: var(--accent);
-      border: 1px solid rgba(59,130,246,0.3);
-      padding: 4px 10px; border-radius: 20px;
+    .nav-links {
+      display: flex; gap: 1.5rem; list-style: none;
     }
+    .nav-links a {
+      font-size: 0.8rem; font-weight: 500; color: var(--muted);
+      text-decoration: none; transition: color 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .nav-links a:hover { color: var(--ink); }
 
-    /* ── MAIN ── */
-    main {
-      position: relative; z-index: 5;
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
+    /* ── WRAPPER ── */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
 
     /* ── HERO ── */
     .hero {
-      text-align: center;
-      padding: 3rem 0 2rem;
+      padding: 7rem 0 5rem;
+      position: relative; overflow: hidden;
     }
-    .hero h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1.1;
-      margin-bottom: 0.75rem;
-    }
-    .hero p {
-      color: var(--muted); font-size: 0.95rem; font-family: var(--mono);
-      margin-bottom: 2rem;
-    }
-    .co-tags {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;
-      margin-bottom: 2rem;
-    }
-    .co-tag {
-      font-family: var(--mono); font-size: 0.7rem;
-      border-radius: 6px; padding: 4px 12px;
-      border: 1px solid;
-    }
-    .co-tag.co1 { background: rgba(16,185,129,0.1); color: #10b981; border-color: rgba(16,185,129,0.3); }
-    .co-tag.co2 { background: rgba(59,130,246,0.1); color: #3b82f6; border-color: rgba(59,130,246,0.3); }
-    .co-tag.co3 { background: rgba(245,158,11,0.1); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
-    .co-tag.co4 { background: rgba(168,85,247,0.1); color: #a855f7; border-color: rgba(168,85,247,0.3); }
-
-    /* ── STAT CARDS ── */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      text-align: center;
-      transition: border-color 0.2s;
-    }
-    .stat-card:hover { border-color: var(--accent); }
-    .stat-num {
-      font-size: 2rem; font-weight: 800; letter-spacing: -0.04em;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .stat-label { font-size: 0.72rem; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
-
-    /* ── GRID LAYOUT ── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-
-    /* ── SECTION CARDS ── */
-    .section-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .section-header {
-      display: flex; align-items: center; gap: 0.6rem;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      background: rgba(255,255,255,0.02);
-    }
-    .section-icon { font-size: 1rem; }
-    .section-title { font-weight: 700; font-size: 0.9rem; }
-    .section-sub { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); margin-left: auto; }
-    .section-body { padding: 1.25rem; }
-
-    /* ── PERSON CARDS ── */
-    .person-list { display: flex; flex-direction: column; gap: 0.6rem; }
-    .person-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 1rem;
-      display: flex; align-items: flex-start; gap: 0.75rem;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-    .person-card:hover { border-color: var(--accent); transform: translateX(2px); }
-    .avatar {
-      width: 36px; height: 36px; border-radius: 8px;
-      display: grid; place-items: center;
-      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
-    }
-    .avatar.iv { background: linear-gradient(135deg,#1d4ed8,#3b82f6); }
-    .avatar.cd { background: linear-gradient(135deg,#065f46,#10b981); }
-    .person-info { flex: 1; min-width: 0; }
-    .person-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
-    .person-meta { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); }
-    .slots-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-    .slot-chip {
-      font-family: var(--mono); font-size: 0.6rem;
-      background: rgba(59,130,246,0.1); color: var(--accent2);
-      border: 1px solid rgba(6,182,212,0.2);
-      padding: 2px 7px; border-radius: 4px;
-    }
-    .round-chip {
-      font-family: var(--mono); font-size: 0.6rem;
-      padding: 2px 7px; border-radius: 4px; border: 1px solid;
-    }
-    .round-chip.hr   { background: rgba(245,158,11,0.1); color:#f59e0b; border-color:rgba(245,158,11,0.3); }
-    .round-chip.tech { background: rgba(59,130,246,0.1); color:#3b82f6; border-color:rgba(59,130,246,0.3); }
-    .round-chip.mgmt { background: rgba(168,85,247,0.1); color:#a855f7; border-color:rgba(168,85,247,0.3); }
-
-    /* ── SCHEDULE TABLE ── */
-    .schedule-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    thead tr { border-bottom: 1px solid var(--border); }
-    th {
-      font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.08em;
-      padding: 0.6rem 0.75rem; text-align: left; font-weight: 500;
-    }
-    td { padding: 0.75rem; border-bottom: 1px solid rgba(30,45,69,0.5); vertical-align: middle; }
-    tbody tr:hover { background: rgba(59,130,246,0.04); }
-    tbody tr:last-child td { border-bottom: none; }
-    .cand-name { font-weight: 600; }
-    .score-bar {
+    .hero-eyebrow {
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.15em;
+      color: var(--accent2); text-transform: uppercase; margin-bottom: 1.25rem;
       display: flex; align-items: center; gap: 0.5rem;
     }
-    .bar-track {
-      flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+    .hero-eyebrow::before {
+      content: ''; width: 28px; height: 2px; background: var(--accent2);
     }
-    .bar-fill {
-      height: 100%; border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      transition: width 0.8s ease;
+    .hero h1 {
+      font-size: clamp(2.6rem, 6vw, 4.5rem);
+      font-weight: 900; letter-spacing: -0.05em;
+      line-height: 1.0;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
     }
-    .score-num { font-family: var(--mono); font-size: 0.7rem; color: var(--accent2); width: 28px; }
-    .pref-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      display: inline-block; margin-right: 4px;
+    .hero h1 em {
+      font-style: normal; color: var(--accent);
+      display: block;
     }
-    .pref-dot.yes { background: var(--green); }
-    .pref-dot.no  { background: var(--muted); }
+    .hero-desc {
+      max-width: 580px;
+      font-size: 1.05rem; color: var(--ink2); font-weight: 400;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+    .hero-btns {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 3rem;
+    }
+    .btn {
+      font-family: var(--sans); font-size: 0.85rem; font-weight: 600;
+      padding: 0.65rem 1.4rem; border-radius: 8px;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+      transition: all 0.2s; border: 1.5px solid transparent; cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: #122d4a; }
+    .btn-outline { background: transparent; color: var(--ink); border-color: var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .hero-co-row {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .co-pill {
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.04em;
+      padding: 5px 12px; border-radius: 6px; border: 1px solid;
+    }
+    .co-pill.c1 { background:#1a3a5c10; color:#1a3a5c; border-color:#1a3a5c30; }
+    .co-pill.c2 { background:#c9540a12; color:#c9540a; border-color:#c9540a30; }
+    .co-pill.c3 { background:#1a7a4a12; color:#1a7a4a; border-color:#1a7a4a30; }
+    .co-pill.c4 { background:#7a1a6a12; color:#7a1a6a; border-color:#7a1a6a30; }
 
-    /* ── TRACE BOX ── */
-    .trace-box {
-      background: #080d16;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem 1.25rem;
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      line-height: 1.8;
-      max-height: 320px;
-      overflow-y: auto;
-      color: #94a3b8;
+    /* decorative lines */
+    .hero-deco {
+      position: absolute; right: -60px; top: 60px;
+      width: 420px; height: 420px; opacity: 0.07;
     }
-    .trace-box .ok   { color: var(--green); }
-    .trace-box .back { color: var(--red); }
-    .trace-box .try  { color: var(--accent); }
-    .trace-box .head { color: var(--yellow); font-weight: 600; }
 
-    /* ── BFS SECTION ── */
-    .bfs-grid { display: flex; flex-direction: column; gap: 0.5rem; }
-    .bfs-row {
-      display: flex; align-items: center; gap: 0.75rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.6rem 0.9rem;
+    /* ── DIVIDER ── */
+    .divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 0;
     }
-    .bfs-label { font-family: var(--mono); font-size: 0.72rem; flex: 0 0 120px; }
-    .bfs-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .bfs-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
-    .bfs-fill.hr   { background: linear-gradient(90deg,#d97706,#f59e0b); }
-    .bfs-fill.tech { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
-    .bfs-fill.mgmt { background: linear-gradient(90deg,#7c3aed,#a855f7); }
-    .bfs-val { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); flex: 0 0 60px; text-align: right; }
+
+    /* ── SECTION ── */
+    section { padding: 5rem 0; }
+    section:nth-child(even) { background: var(--bg2); }
+    .section-label {
+      font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em;
+      color: var(--muted); text-transform: uppercase; margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 800; letter-spacing: -0.04em;
+      color: var(--ink); margin-bottom: 1rem;
+    }
+    .section-desc {
+      font-size: 0.95rem; color: var(--ink2); max-width: 640px; line-height: 1.75;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── OVERVIEW GRID ── */
+    .overview-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    @media(max-width:700px) { .overview-grid { grid-template-columns: 1fr; } }
+    .ov-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .ov-card:hover { box-shadow: 0 8px 32px rgba(26,58,92,0.08); transform: translateY(-2px); }
+    .ov-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+    .ov-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; }
+    .ov-text { font-size: 0.85rem; color: var(--ink2); line-height: 1.65; }
+
+    /* ── OBJECTIVES ── */
+    .obj-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .obj-item {
+      display: flex; gap: 1rem; align-items: flex-start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.1rem 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .obj-item:hover { border-color: var(--accent); }
+    .obj-num {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+      color: var(--accent); background: var(--tag-bg);
+      width: 28px; height: 28px; border-radius: 6px;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .obj-text { font-size: 0.9rem; color: var(--ink2); padding-top: 3px; line-height: 1.6; }
+
+    /* ── CO TABLE ── */
+    .co-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); }
+    thead { background: var(--accent); color: #fff; }
+    th {
+      font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.9rem 1rem; text-align: left;
+    }
+    td {
+      padding: 0.9rem 1rem; font-size: 0.85rem; color: var(--ink2);
+      border-bottom: 1px solid var(--border); vertical-align: top;
+      line-height: 1.6;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #1a3a5c06; }
+    td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+    .co-badge {
+      display: inline-block; font-family: var(--mono); font-size: 0.6rem;
+      padding: 2px 7px; border-radius: 4px; margin-right: 6px; border: 1px solid;
+    }
+    .co-badge.co1 { background:#1a3a5c10; color:#1a3a5c; border-color:#1a3a5c30; }
+    .co-badge.co2 { background:#c9540a10; color:#c9540a; border-color:#c9540a30; }
+    .co-badge.co3 { background:#1a7a4a10; color:#1a7a4a; border-color:#1a7a4a30; }
+    .co-badge.co4 { background:#7a1a6a10; color:#7a1a6a; border-color:#7a1a6a30; }
+    .co-badge.co6 { background:#7a4a1a10; color:#7a4a1a; border-color:#7a4a1a30; }
+
+    /* ── WORKFLOW STEPS ── */
+    .workflow {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.25rem; counter-reset: step;
+    }
+    .step-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem 1.25rem;
+      position: relative; counter-increment: step;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .step-card:hover { box-shadow: 0 6px 24px rgba(26,58,92,0.1); transform: translateY(-3px); }
+    .step-card::before {
+      content: counter(step);
+      font-family: var(--mono); font-size: 2rem; font-weight: 700;
+      color: var(--border); position: absolute; top: 1rem; right: 1rem;
+    }
+    .step-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+    .step-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.4rem; }
+    .step-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── TECH GRID ── */
+    .tech-grid {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+    }
+    .tech-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.6rem 1rem;
+      font-size: 0.85rem; font-weight: 500;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .tech-chip:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(26,58,92,0.08); }
+    .tech-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+
+    /* ── OUTPUTS ── */
+    .output-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .output-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      text-align: center;
+      transition: box-shadow 0.2s;
+    }
+    .output-card:hover { box-shadow: 0 4px 20px rgba(26,58,92,0.08); }
+    .output-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+    .output-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .output-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── REPO STRUCTURE ── */
+    .repo-box {
+      background: #1a1714; border-radius: var(--radius);
+      padding: 1.5rem 1.75rem; overflow-x: auto;
+      font-family: var(--mono); font-size: 0.8rem; line-height: 2;
+      color: #c8bfaf;
+    }
+    .repo-box .dir  { color: #7ab8e8; }
+    .repo-box .file { color: #c8bfaf; }
+    .repo-box .note { color: #6b7280; }
+    .repo-box .root { color: #f5c97a; font-weight: 600; }
+
+    /* ── LINKS SECTION ── */
+    .links-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .link-card {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      text-decoration: none; color: var(--ink);
+      display: flex; gap: 1rem; align-items: flex-start;
+      transition: all 0.2s;
+    }
+    .link-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(26,58,92,0.1); }
+    .link-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: var(--tag-bg); display: grid; place-items: center;
+      font-size: 1.2rem; flex-shrink: 0;
+    }
+    .link-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .link-url { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); word-break: break-all; }
 
     /* ── FOOTER ── */
     footer {
-      position: relative; z-index: 5;
-      border-top: 1px solid var(--border);
-      padding: 1.25rem 2rem;
-      font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+      background: var(--ink); color: rgba(245,243,238,0.5);
+      padding: 2rem;
       text-align: center;
+      font-family: var(--mono); font-size: 0.68rem; line-height: 2;
     }
+    footer strong { color: rgba(245,243,238,0.9); }
 
     /* ── ANIMATIONS ── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(24px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .anim { animation: fadeUp 0.5s ease both; }
-    .anim-1 { animation-delay: 0.05s; }
-    .anim-2 { animation-delay: 0.12s; }
-    .anim-3 { animation-delay: 0.18s; }
-    .anim-4 { animation-delay: 0.24s; }
-    .anim-5 { animation-delay: 0.30s; }
+    .fade-up { opacity: 0; animation: fadeUp 0.6s ease forwards; }
+    .d1 { animation-delay: 0.05s; }
+    .d2 { animation-delay: 0.15s; }
+    .d3 { animation-delay: 0.25s; }
+    .d4 { animation-delay: 0.35s; }
+    .d5 { animation-delay: 0.45s; }
+
+    @media(max-width: 640px) {
+      .nav-links { display: none; }
+      .hero { padding: 4rem 0 3rem; }
+    }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-icon">📅</div>
-      <div>
-        <div class="logo-text">AISS</div>
-        <div class="logo-sub">AUTOMATED INTERVIEW SLOT SCHEDULER</div>
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      AISS <span class="nav-pill">CFAI PROJECT</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#objectives">Objectives</a></li>
+      <li><a href="#coverage">CO Coverage</a></li>
+      <li><a href="#workflow">Workflow</a></li>
+      <li><a href="#tech">Tech</a></li>
+      <li><a href="#structure">Structure</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div style="background: var(--bg);">
+  <div class="wrap">
+    <div class="hero">
+
+      <!-- decorative SVG -->
+      <svg class="hero-deco" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="200" cy="200" r="180" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="200" cy="200" r="130" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="200" cy="200" r="80" stroke="#1a3a5c" stroke-width="1"/>
+        <line x1="20" y1="200" x2="380" y2="200" stroke="#1a3a5c" stroke-width="1"/>
+        <line x1="200" y1="20" x2="200" y2="380" stroke="#1a3a5c" stroke-width="1"/>
+        <line x1="73" y1="73" x2="327" y2="327" stroke="#1a3a5c" stroke-width="1"/>
+        <line x1="327" y1="73" x2="73" y2="327" stroke="#1a3a5c" stroke-width="1"/>
+      </svg>
+
+      <div class="hero-eyebrow fade-up d1">Academic Project Showcase</div>
+      <h1 class="fade-up d2">
+        Automated<br>
+        <em>Interview Slot</em>
+        Scheduler
+      </h1>
+      <p class="hero-desc fade-up d3">
+        A Python-based academic project that assigns interview slots to candidates
+        by matching availability with interviewers across multiple round types using
+        constraint satisfaction, BFS search, utility-based scoring, and an AI agent pipeline.
+      </p>
+      <div class="hero-btns fade-up d4">
+        <a href="https://github.com/" class="btn btn-primary">⟶ View GitHub Repository</a>
+        <a href="#overview" class="btn btn-outline">Explore Project</a>
+      </div>
+      <div class="hero-co-row fade-up d5">
+        <span class="co-pill c1">CO1 · Agent Model (PEAS)</span>
+        <span class="co-pill c2">CO2 · BFS Search</span>
+        <span class="co-pill c3">CO3 · CSP + Backtracking</span>
+        <span class="co-pill c4">CO4 · Utility Scoring</span>
       </div>
     </div>
-    <div class="badge">CFAI · 25SC1306E · KL University</div>
   </div>
-</header>
+</div>
 
-<!-- MAIN -->
-<main>
+<hr class="divider" />
 
-  <!-- HERO -->
-  <div class="hero anim anim-1">
-    <h1>Interview Slot Scheduler</h1>
-    <p>CSP + Backtracking · BFS Search · Utility Scoring · Agent Model</p>
-    <div class="co-tags">
-      <span class="co-tag co1">CO1 · Agent Model (PEAS)</span>
-      <span class="co-tag co2">CO2 · BFS Search</span>
-      <span class="co-tag co3">CO3 · CSP + Backtracking</span>
-      <span class="co-tag co4">CO4 · Utility Scoring</span>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats anim anim-2">
-    <div class="stat-card">
-      <div class="stat-num">5</div>
-      <div class="stat-label">CANDIDATES</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">4</div>
-      <div class="stat-label">INTERVIEWERS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">3</div>
-      <div class="stat-label">ROUND TYPES</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">10</div>
-      <div class="stat-label">ASSIGNMENTS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">0</div>
-      <div class="stat-label">BACKTRACKS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">16</div>
-      <div class="stat-label">BFS NODES</div>
-    </div>
-  </div>
-
-  <!-- INTERVIEWERS + CANDIDATES -->
-  <div class="grid-2 anim anim-3">
-
-    <!-- INTERVIEWERS -->
-    <div class="section-card">
-      <div class="section-header">
-        <span class="section-icon">👤</span>
-        <span class="section-title">Interviewers</span>
-        <span class="section-sub">CO1 · Environment Sensors</span>
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="section-label">Project Overview</div>
+    <h2 class="section-title">What is AISS?</h2>
+    <p class="section-desc">
+      The Automated Interview Slot Scheduler (AISS) is designed to assign candidates
+      to interview slots by validating constraints and evaluating utility scores. The system
+      models interviewers and candidates, applies CSP backtracking to find valid assignments,
+      and ranks results using a multi-criteria utility function — producing structured,
+      explainable, and academically meaningful output.
+    </p>
+    <div class="overview-grid">
+      <div class="ov-card">
+        <div class="ov-icon">🤖</div>
+        <div class="ov-title">AI Agent Design</div>
+        <div class="ov-text">A SchedulerAgent perceives the environment using the PEAS framework — tracking candidates, interviewers, and time slots — then formulates the problem as a state-space for downstream solving.</div>
       </div>
-      <div class="section-body">
-        <div class="person-list">
+      <div class="ov-card">
+        <div class="ov-icon">🔍</div>
+        <div class="ov-title">BFS Exploration</div>
+        <div class="ov-text">Breadth-first search explores the space of reachable (interviewer, slot) pairs per round type before the CSP runs, measuring node expansions and validating reachability.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">🧩</div>
+        <div class="ov-title">CSP Backtracking</div>
+        <div class="ov-text">Variables are (candidate, round) pairs. Backtracking with MRV heuristic and preference-first domain ordering resolves conflicts and finds a valid, constraint-satisfying schedule.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">📊</div>
+        <div class="ov-title">Utility Scoring</div>
+        <div class="ov-text">Each assignment is scored out of 10 across four criteria: preference alignment, expertise match, early slot bonus, and interviewer load balance — selecting the best feasible outcome.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-          <div class="person-card">
-            <div class="avatar iv">DR</div>
-            <div class="person-info">
-              <div class="person-name">Dr. Rao</div>
-              <div class="person-meta">I001 · Technical Expert</div>
-              <div class="slots-row">
-                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Mon-11AM</span>
-                <span class="slot-chip">Tue-10AM</span><span class="slot-chip">Wed-9AM</span>
-              </div>
-            </div>
-          </div>
+<!-- OBJECTIVES -->
+<section id="objectives">
+  <div class="wrap">
+    <div class="section-label">Project Objectives</div>
+    <h2 class="section-title">What This Project Achieves</h2>
+    <div class="obj-list">
+      <div class="obj-item">
+        <div class="obj-num">01</div>
+        <div class="obj-text">Model the interview scheduling problem using AI-oriented state-space representation with candidates, interviewers, rounds, and time slots as core components.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-num">02</div>
+        <div class="obj-text">Apply BFS search to explore the reachable space of (interviewer, slot) combinations per round type before assigning, measuring node expansions and runtime.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-num">03</div>
+        <div class="obj-text">Use CSP backtracking with MRV heuristic to enforce hard constraints — no double-booking, expertise matching, and slot conflict detection — across all assignments.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-num">04</div>
+        <div class="obj-text">Score each final assignment using a multi-criteria utility function and generate a ranked schedule optimising preference alignment and load balance.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-num">05</div>
+        <div class="obj-text">Generate structured outputs — terminal reasoning trace, schedule.json, schedule.csv, and an HTML showcase — suitable for academic review and demonstration.</div>
+      </div>
+      <div class="obj-item">
+        <div class="obj-num">06</div>
+        <div class="obj-text">Build a clean, modular Python pipeline integrating all four CFAI course outcomes into one cohesive, explainable intelligent system.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-          <div class="person-card">
-            <div class="avatar iv">MP</div>
-            <div class="person-info">
-              <div class="person-name">Ms. Priya</div>
-              <div class="person-meta">I002 · HR Specialist</div>
-              <div class="slots-row">
-                <span class="slot-chip">Mon-10AM</span><span class="slot-chip">Tue-9AM</span>
-                <span class="slot-chip">Tue-11AM</span><span class="slot-chip">Thu-10AM</span>
-              </div>
-            </div>
-          </div>
+<!-- CO COVERAGE TABLE -->
+<section id="coverage">
+  <div class="wrap">
+    <div class="section-label">Academic CO / Module Coverage</div>
+    <h2 class="section-title">Course Outcome Mapping</h2>
+    <p class="section-desc">Each module of AISS directly maps to a CFAI course outcome, ensuring full academic coverage across the six CO areas.</p>
+    <div class="co-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Module / CO Area</th>
+            <th>Academic Requirement</th>
+            <th>AISS Implementation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="co-badge co1">CO1</span>Problem Formulation &amp; Agent Model</td>
+            <td>Represent the problem as a state space with actions, transitions, goals, and costs using Python data structures and a PEAS agent.</td>
+            <td>SchedulerAgent perceives interviewers, candidates, and slots; formulates variables as (candidate, round) pairs with an explicit goal state and cost function.</td>
+          </tr>
+          <tr>
+            <td><span class="co-badge co2">CO2</span>Search &amp; Algorithmic Reasoning</td>
+            <td>Implement and analyse graph/state-space search algorithms with empirical profiling of node expansions and runtime.</td>
+            <td>BFS explores reachable (interviewer, slot) combinations per round type using a FIFO queue, counting node expansions and measuring reachability before the CSP solver runs.</td>
+          </tr>
+          <tr>
+            <td><span class="co-badge co3">CO3</span>Constraint Satisfaction (CSP)</td>
+            <td>Model and solve real-world problems using backtracking, constraint propagation, and heuristics such as MRV and LCV.</td>
+            <td>CSPScheduler enforces four hard constraints with MRV variable selection and preference-first domain ordering, producing a full reasoning trace showing all assignments and backtracks.</td>
+          </tr>
+          <tr>
+            <td><span class="co-badge co4">CO4</span>Utility &amp; Decision Making</td>
+            <td>Design decision-making agents that select the best outcome using utility functions and evaluate performance under bounded computation.</td>
+            <td>UtilityScorer assigns scores (0–10) per assignment across four weighted criteria: preference alignment, expertise match, early slot bonus, and load balance.</td>
+          </tr>
+          <tr>
+            <td><span class="co-badge co1">CO5</span>Reasoning Under Uncertainty</td>
+            <td>Consider dynamic or uncertain scenarios in decision logic and reasoning pipelines.</td>
+            <td>The modular architecture supports extension toward probabilistic availability and uncertain interviewer schedules; the agent model is designed to handle incomplete information.</td>
+          </tr>
+          <tr>
+            <td><span class="co-badge co6">CO6</span>Integrated AI Pipeline</td>
+            <td>Build integrated AI reasoning pipelines combining representation + search + CSP + decision logic with explainable outputs.</td>
+            <td>The main pipeline integrates all four modules sequentially — agent perception → BFS exploration → CSP backtracking → utility scoring — with a full reasoning trace exported as JSON, CSV, and HTML.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
-          <div class="person-card">
-            <div class="avatar iv">MA</div>
-            <div class="person-info">
-              <div class="person-name">Mr. Arjun</div>
-              <div class="person-meta">I003 · Technical Expert</div>
-              <div class="slots-row">
-                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Wed-10AM</span>
-                <span class="slot-chip">Thu-9AM</span><span class="slot-chip">Fri-11AM</span>
-              </div>
-            </div>
-          </div>
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="section-label">Core Features</div>
+    <h2 class="section-title">What the System Does</h2>
+    <div class="overview-grid">
+      <div class="ov-card">
+        <div class="ov-icon">👥</div>
+        <div class="ov-title">Multi-Interviewer Modelling</div>
+        <div class="ov-text">Each interviewer has a defined expertise type (HR / Technical / Managerial) and a set of available time slots, modelled as Python dataclasses with assignment tracking.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">🗓️</div>
+        <div class="ov-title">Candidate Preference Slots</div>
+        <div class="ov-text">Candidates declare their required interview rounds and preferred time slots. The CSP domain ordering prioritises preferred slots, maximising alignment in the final schedule.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">🔄</div>
+        <div class="ov-title">Multi-Round Scheduling</div>
+        <div class="ov-text">Supports HR, Technical, and Managerial rounds simultaneously. Each (candidate, round) pair is an independent CSP variable assigned without conflicts across all rounds.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">⚡</div>
+        <div class="ov-title">Conflict Detection</div>
+        <div class="ov-text">Hard constraints prevent any interviewer from being double-booked and any candidate from being scheduled for two interviews in the same slot, across all round types.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">📝</div>
+        <div class="ov-title">Reasoning Trace</div>
+        <div class="ov-text">Every assignment attempt, successful assignment, and backtrack is logged with variable name, domain size, chosen value, and reason — forming a complete explainability trail.</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-icon">📤</div>
+        <div class="ov-title">Structured Exports</div>
+        <div class="ov-text">Final schedule exported as schedule.json and schedule.csv alongside the terminal trace and HTML dashboard, covering all required academic output formats.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-          <div class="person-card">
-            <div class="avatar iv">MK</div>
-            <div class="person-info">
-              <div class="person-name">Ms. Kavya</div>
-              <div class="person-meta">I004 · Managerial Lead</div>
-              <div class="slots-row">
-                <span class="slot-chip">Tue-10AM</span><span class="slot-chip">Wed-11AM</span>
-                <span class="slot-chip">Thu-10AM</span><span class="slot-chip">Fri-9AM</span>
-              </div>
-            </div>
-          </div>
+<!-- WORKFLOW -->
+<section id="workflow">
+  <div class="wrap">
+    <div class="section-label">System Workflow</div>
+    <h2 class="section-title">How It Works — Step by Step</h2>
+    <div class="workflow">
+      <div class="step-card">
+        <div class="step-icon">🧠</div>
+        <div class="step-title">Agent Perceives Environment</div>
+        <div class="step-desc">SchedulerAgent reads all interviewers, candidates, and rounds; builds the slot universe and formulates the problem state space.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">🔍</div>
+        <div class="step-title">BFS Explores Reachability</div>
+        <div class="step-desc">Breadth-first search scans all reachable (interviewer, slot) pairs per round type using a FIFO queue, counting node expansions.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">🧩</div>
+        <div class="step-title">CSP Assigns Slots</div>
+        <div class="step-desc">Backtracking solver selects variables by MRV, orders domains by preference, checks all constraints, and assigns or backtracks.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">📊</div>
+        <div class="step-title">Utility Scores Results</div>
+        <div class="step-desc">Each assignment is evaluated across four criteria and assigned a score out of 10, producing the final ranked schedule.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">📤</div>
+        <div class="step-title">Outputs Generated</div>
+        <div class="step-desc">Schedule printed to terminal with full reasoning trace, then exported as JSON and CSV files for analysis and academic review.</div>
+      </div>
+    </div>
+  </div>
+</section>
 
+<!-- TECH -->
+<section id="tech">
+  <div class="wrap">
+    <div class="section-label">Technologies Used</div>
+    <h2 class="section-title">Built With</h2>
+    <div class="tech-grid">
+      <div class="tech-chip"><span class="tech-dot" style="background:#3776ab"></span>Python 3.9+</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#1a3a5c"></span>Object-Oriented Programming</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#1a7a4a"></span>CSP + Backtracking</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#c9540a"></span>BFS (collections.deque)</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#7a1a6a"></span>Utility-based Decision Logic</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#5a6a1a"></span>Python Dataclasses</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#1a5a6a"></span>JSON / CSV Output</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#333"></span>GitHub &amp; GitHub Pages</div>
+      <div class="tech-chip"><span class="tech-dot" style="background:#e34c26"></span>HTML / CSS / JS (Showcase)</div>
+    </div>
+  </div>
+</section>
+
+<!-- OUTPUTS -->
+<section id="outputs">
+  <div class="wrap">
+    <div class="section-label">Outputs Generated</div>
+    <h2 class="section-title">What the System Produces</h2>
+    <div class="output-grid">
+      <div class="output-card">
+        <div class="output-icon">🖥️</div>
+        <div class="output-title">Terminal Schedule</div>
+        <div class="output-desc">Formatted final schedule printed to console with candidate, round, interviewer, slot, and utility score per row.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">📋</div>
+        <div class="output-title">Reasoning Trace</div>
+        <div class="output-desc">Full CSP backtracking trace showing every variable tried, assigned, and backtracked — with domain sizes at each step.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">🗂️</div>
+        <div class="output-title">schedule.json</div>
+        <div class="output-desc">Machine-readable JSON export of the complete schedule for programmatic access and further analysis.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">📊</div>
+        <div class="output-title">schedule.csv</div>
+        <div class="output-desc">Spreadsheet-compatible CSV for comparison, charting, and academic submission as a structured data file.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">🌐</div>
+        <div class="output-title">HTML Dashboard</div>
+        <div class="output-desc">Visual dashboard showing interviewers, candidates, BFS exploration bars, CSP trace, and the final scored schedule table.</div>
+      </div>
+      <div class="output-card">
+        <div class="output-icon">📄</div>
+        <div class="output-title">GitHub Pages Showcase</div>
+        <div class="output-desc">This academic project showcase page documenting all objectives, CO mappings, workflow, and project structure.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REPO STRUCTURE -->
+<section id="structure">
+  <div class="wrap">
+    <div class="section-label">Repository Structure</div>
+    <h2 class="section-title">Project File Layout</h2>
+    <div class="repo-box">
+<span class="root">SEM-3-project-AISS/</span>
+├── <span class="file">index.html</span>          <span class="note">← GitHub Pages showcase (this page)</span>
+├── <span class="file">README.md</span>           <span class="note">← Project documentation</span>
+└── <span class="dir">AISS/</span>
+    ├── <span class="file">main.py</span>         <span class="note">← Entry point — runs full pipeline</span>
+    ├── <span class="file">models.py</span>       <span class="note">← Candidate, Interviewer, Round dataclasses</span>
+    ├── <span class="file">agents.py</span>       <span class="note">← CO1: SchedulerAgent (PEAS model)</span>
+    ├── <span class="file">search.py</span>       <span class="note">← CO2: BFS slot reachability finder</span>
+    ├── <span class="file">csp.py</span>          <span class="note">← CO3: CSP backtracking + MRV</span>
+    ├── <span class="file">utility.py</span>      <span class="note">← CO4: Multi-criteria utility scorer</span>
+    ├── <span class="file">requirements.txt</span> <span class="note">← No external deps (stdlib only)</span>
+    └── <span class="dir">outputs/</span>
+        ├── <span class="file">schedule.json</span>  <span class="note">← Machine-readable output</span>
+        └── <span class="file">schedule.csv</span>   <span class="note">← Spreadsheet export</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECT LINKS -->
+<section id="links" style="background:var(--bg);">
+  <div class="wrap">
+    <div class="section-label">Project Links</div>
+    <h2 class="section-title">Access the Project</h2>
+    <div class="links-grid">
+      <a href="https://github.com/" class="link-card">
+        <div class="link-icon">⟁</div>
+        <div>
+          <div class="link-title">GitHub Repository</div>
+          <div class="link-url">github.com/[username]/SEM-3-project-AISS</div>
         </div>
-      </div>
-    </div>
-
-    <!-- CANDIDATES -->
-    <div class="section-card">
-      <div class="section-header">
-        <span class="section-icon">🎓</span>
-        <span class="section-title">Candidates</span>
-        <span class="section-sub">CO1 · State Variables</span>
-      </div>
-      <div class="section-body">
-        <div class="person-list">
-
-          <div class="person-card">
-            <div class="avatar cd">CH</div>
-            <div class="person-info">
-              <div class="person-name">Charvik</div>
-              <div class="person-meta">C001</div>
-              <div class="slots-row">
-                <span class="round-chip hr">HR</span><span class="round-chip tech">Technical</span>
-                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Mon-10AM</span><span class="slot-chip">Tue-10AM</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="person-card">
-            <div class="avatar cd">AD</div>
-            <div class="person-info">
-              <div class="person-name">Aditya</div>
-              <div class="person-meta">C002</div>
-              <div class="slots-row">
-                <span class="round-chip hr">HR</span><span class="round-chip tech">Technical</span>
-                <span class="slot-chip">Mon-11AM</span><span class="slot-chip">Tue-9AM</span><span class="slot-chip">Wed-9AM</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="person-card">
-            <div class="avatar cd">RI</div>
-            <div class="person-info">
-              <div class="person-name">Riya</div>
-              <div class="person-meta">C003</div>
-              <div class="slots-row">
-                <span class="round-chip hr">HR</span><span class="round-chip mgmt">Managerial</span>
-                <span class="slot-chip">Tue-10AM</span><span class="slot-chip">Wed-10AM</span><span class="slot-chip">Thu-10AM</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="person-card">
-            <div class="avatar cd">SA</div>
-            <div class="person-info">
-              <div class="person-name">Sai</div>
-              <div class="person-meta">C004</div>
-              <div class="slots-row">
-                <span class="round-chip tech">Technical</span><span class="round-chip mgmt">Managerial</span>
-                <span class="slot-chip">Mon-9AM</span><span class="slot-chip">Wed-11AM</span><span class="slot-chip">Fri-9AM</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="person-card">
-            <div class="avatar cd">ME</div>
-            <div class="person-info">
-              <div class="person-name">Meena</div>
-              <div class="person-meta">C005</div>
-              <div class="slots-row">
-                <span class="round-chip hr">HR</span><span class="round-chip tech">Technical</span>
-                <span class="slot-chip">Tue-11AM</span><span class="slot-chip">Thu-9AM</span><span class="slot-chip">Fri-11AM</span>
-              </div>
-            </div>
-          </div>
-
+      </a>
+      <a href="#structure" class="link-card">
+        <div class="link-icon">📄</div>
+        <div>
+          <div class="link-title">README Documentation</div>
+          <div class="link-url">github.com/[username]/SEM-3-project-AISS/blob/main/AISS/README.md</div>
         </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- BFS + CSP TRACE -->
-  <div class="grid-2 anim anim-4">
-
-    <!-- BFS -->
-    <div class="section-card">
-      <div class="section-header">
-        <span class="section-icon">🔍</span>
-        <span class="section-title">BFS — Reachable Slot Exploration</span>
-        <span class="section-sub">CO2 · Search</span>
-      </div>
-      <div class="section-body">
-        <div class="bfs-grid">
-          <div class="bfs-row">
-            <span class="bfs-label">HR Round</span>
-            <div class="bfs-track"><div class="bfs-fill hr" style="width:50%"></div></div>
-            <span class="bfs-val">4 pairs · 4 nodes</span>
-          </div>
-          <div class="bfs-row">
-            <span class="bfs-label">Technical Round</span>
-            <div class="bfs-track"><div class="bfs-fill tech" style="width:100%"></div></div>
-            <span class="bfs-val">8 pairs · 16 nodes</span>
-          </div>
-          <div class="bfs-row">
-            <span class="bfs-label">Managerial Round</span>
-            <div class="bfs-track"><div class="bfs-fill mgmt" style="width:50%"></div></div>
-            <span class="bfs-val">4 pairs · 8 nodes</span>
-          </div>
+      </a>
+      <a href="#overview" class="link-card">
+        <div class="link-icon">🌐</div>
+        <div>
+          <div class="link-title">Live Showcase</div>
+          <div class="link-url">[username].github.io/SEM-3-project-AISS</div>
         </div>
-        <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:1rem;">
-          Total nodes explored: <strong style="color:var(--accent2)">16</strong> &nbsp;|&nbsp;
-          Algorithm: Breadth-First Search (FIFO queue) &nbsp;|&nbsp;
-          Purpose: Verify reachability before CSP
-        </p>
-      </div>
-    </div>
-
-    <!-- CSP TRACE -->
-    <div class="section-card">
-      <div class="section-header">
-        <span class="section-icon">🧩</span>
-        <span class="section-title">CSP Backtracking Trace</span>
-        <span class="section-sub">CO3 · MRV Heuristic</span>
-      </div>
-      <div class="section-body">
-        <div class="trace-box">
-          <div class="head">Constraints: expertise match · no double-booking · no same-slot conflict</div>
-          <div class="head">Heuristic: MRV (Minimum Remaining Values) + preference-first domain ordering</div>
-          <br>
-          <div class="try">  Try (C001, HR) — domain size: 4</div>
-          <div class="ok">    ✓ Assigned (C001, HR) → (I002, Mon-10AM) [preferred ✓]</div>
-          <div class="try">  Try (C002, HR) — domain size: 4</div>
-          <div class="ok">    ✓ Assigned (C002, HR) → (I002, Tue-9AM) [preferred ✓]</div>
-          <div class="try">  Try (C003, HR) — domain size: 4</div>
-          <div class="ok">    ✓ Assigned (C003, HR) → (I002, Thu-10AM) [preferred ✓]</div>
-          <div class="try">  Try (C003, Managerial) — domain size: 4</div>
-          <div class="ok">    ✓ Assigned (C003, Managerial) → (I004, Tue-10AM) [preferred ✓]</div>
-          <div class="try">  Try (C004, Managerial) — domain size: 4</div>
-          <div class="ok">    ✓ Assigned (C004, Managerial) → (I004, Wed-11AM) [preferred ✓]</div>
-          <div class="try">  Try (C005, HR) — domain size: 4</div>
-          <div class="ok">    ✓ Assigned (C005, HR) → (I002, Tue-11AM) [preferred ✓]</div>
-          <div class="try">  Try (C001, Technical) — domain size: 8</div>
-          <div class="ok">    ✓ Assigned (C001, Technical) → (I001, Mon-9AM) [preferred ✓]</div>
-          <div class="try">  Try (C002, Technical) — domain size: 8</div>
-          <div class="ok">    ✓ Assigned (C002, Technical) → (I001, Mon-11AM) [preferred ✓]</div>
-          <div class="try">  Try (C004, Technical) — domain size: 8</div>
-          <div class="ok">    ✓ Assigned (C004, Technical) → (I003, Mon-9AM) [preferred ✓]</div>
-          <div class="try">  Try (C005, Technical) — domain size: 8</div>
-          <div class="ok">    ✓ Assigned (C005, Technical) → (I003, Thu-9AM) [preferred ✓]</div>
-          <br>
-          <div class="head">✅ Solution found · Backtracks: 0</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- FINAL SCHEDULE TABLE -->
-  <div class="section-card anim anim-5" style="margin-bottom:1.5rem;">
-    <div class="section-header">
-      <span class="section-icon">📋</span>
-      <span class="section-title">Final Interview Schedule</span>
-      <span class="section-sub">CO4 · Utility-Scored Output</span>
-    </div>
-    <div class="section-body" style="padding:0;">
-      <div class="schedule-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Candidate</th>
-              <th>Round</th>
-              <th>Interviewer</th>
-              <th>Slot</th>
-              <th>Preferred</th>
-              <th>Utility Score</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-body">
-          </tbody>
-        </table>
-      </div>
+      </a>
     </div>
   </div>
+</section>
 
-</main>
+<!-- ACADEMIC OBJECTIVE -->
+<section style="background:var(--accent); color:#fff; padding:4rem 0;">
+  <div class="wrap" style="text-align:center; max-width:720px;">
+    <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.15em;opacity:0.6;margin-bottom:0.75rem;text-transform:uppercase;">Academic Objective</div>
+    <h2 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:800;letter-spacing:-0.04em;margin-bottom:1rem;line-height:1.3;">
+      Demonstrating intelligent scheduling through structured AI reasoning
+    </h2>
+    <p style="font-size:0.9rem;opacity:0.8;line-height:1.75;">
+      This project demonstrates how interview slot allocation can be implemented using
+      constraint satisfaction, breadth-first search, and utility-based decision making.
+      It is presented as an academic implementation of intelligent scheduling using Python,
+      with emphasis on explainability, modular design, and complete AI pipeline integration
+      aligned to the CFAI course outcomes.
+    </p>
+  </div>
+</section>
 
+<!-- FOOTER -->
 <footer>
-  AISS · Automated Interview Slot Scheduler &nbsp;|&nbsp;
-  CFAI 25SC1306E · KL University, Bachupally &nbsp;|&nbsp;
-  Python · CSP · BFS · Utility Functions
+  <strong>AISS — Automated Interview Slot Scheduler</strong><br>
+  Academic GitHub Pages Showcase &nbsp;·&nbsp; CFAI 25SC1306E &nbsp;·&nbsp; KL University, Bachupally &nbsp;·&nbsp; 2025–2026 Term 3
 </footer>
 
-<script>
-  const schedule = [
-    { candidate:"Charvik",  round:"HR",          interviewer:"Ms. Priya",  slot:"Mon-10AM", preferred:true,  score:8.9 },
-    { candidate:"Charvik",  round:"Technical",   interviewer:"Dr. Rao",    slot:"Mon-9AM",  preferred:true,  score:10.0 },
-    { candidate:"Aditya",   round:"HR",          interviewer:"Ms. Priya",  slot:"Tue-9AM",  preferred:true,  score:8.0 },
-    { candidate:"Aditya",   round:"Technical",   interviewer:"Dr. Rao",    slot:"Mon-11AM", preferred:true,  score:9.8 },
-    { candidate:"Riya",     round:"HR",          interviewer:"Ms. Priya",  slot:"Thu-10AM", preferred:true,  score:7.0 },
-    { candidate:"Riya",     round:"Managerial",  interviewer:"Ms. Kavya",  slot:"Tue-10AM", preferred:true,  score:8.9 },
-    { candidate:"Sai",      round:"Technical",   interviewer:"Mr. Arjun",  slot:"Mon-9AM",  preferred:true,  score:10.0 },
-    { candidate:"Sai",      round:"Managerial",  interviewer:"Ms. Kavya",  slot:"Wed-11AM", preferred:true,  score:8.0 },
-    { candidate:"Meena",    round:"HR",          interviewer:"Ms. Priya",  slot:"Tue-11AM", preferred:true,  score:7.8 },
-    { candidate:"Meena",    round:"Technical",   interviewer:"Mr. Arjun",  slot:"Thu-9AM",  preferred:true,  score:8.0 },
-  ];
-
-  const roundClass = { HR:"hr", Technical:"tech", Managerial:"mgmt" };
-
-  const tbody = document.getElementById("schedule-body");
-  schedule.forEach(entry => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><span class="cand-name">${entry.candidate}</span></td>
-      <td><span class="round-chip ${roundClass[entry.round]}">${entry.round}</span></td>
-      <td>${entry.interviewer}</td>
-      <td><span class="slot-chip">${entry.slot}</span></td>
-      <td><span class="pref-dot ${entry.preferred?'yes':'no'}"></span>${entry.preferred ? 'Yes' : 'No'}</td>
-      <td>
-        <div class="score-bar">
-          <div class="bar-track"><div class="bar-fill" style="width:${entry.score*10}%"></div></div>
-          <span class="score-num">${entry.score}</span>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-</script>
 </body>
 </html>
